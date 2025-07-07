@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
+pub mod util;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Span {
     File,
