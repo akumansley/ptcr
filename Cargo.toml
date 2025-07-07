@@ -1,0 +1,17 @@
+[package]
+name = "ptcr"
+version = "0.1.0"
+edition = "2021"
+authors = [""]
+
+[dependencies]
+anyhow = "1"
+regex = "1"
+once_cell = "1"
+
+[[bin]]
+name = "ptcr"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
