@@ -1,6 +1,6 @@
 // Utility functions for printing PTCR records with source context
 use std::fs;
-use std::path::{Path};
+use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
@@ -19,16 +19,16 @@ pub fn print_ptcr_file(ptcr_file: &Path, context: usize) -> Result<()> {
 }
 
 fn print_record(path: &Path, rec: &Record, context: usize) -> Result<()> {
-    let contents = fs::read_to_string(path)
-        .map_err(|e| anyhow!("failed to read {}: {e}", path.display()))?;
+    let contents =
+        fs::read_to_string(path).map_err(|e| anyhow!("failed to read {}: {e}", path.display()))?;
     let lines: Vec<&str> = contents.lines().collect();
     let (start, end) = line_bounds(&rec.span, lines.len());
     let start = start.saturating_sub(1 + context);
     let end = (end + context).min(lines.len());
 
     println!("{}:{}", rec.path.display(), span_to_string(&rec.span));
-    for i in start..end {
-        println!("{:>5} | {}", i + 1, lines[i]);
+    for (i, line) in lines.iter().enumerate().skip(start).take(end - start) {
+        println!("{:>5} | {}", i + 1, line);
     }
     println!("---");
     for line in &rec.body {
@@ -38,13 +38,17 @@ fn print_record(path: &Path, rec: &Record, context: usize) -> Result<()> {
 }
 
 fn line_bounds(span: &Span, max: usize) -> (usize, usize) {
-    let (mut start, mut end) = match span {
+    let (start, mut end) = match span {
         Span::File => (1, max),
         Span::Line(l) => (*l, *l),
         Span::Point { line, .. } => (*line, *line),
         Span::LineRange { start, end } => (*start, *end),
         Span::ColumnRange { line, .. } => (*line, *line),
-        Span::MultiLine { start_line, end_line, .. } => (*start_line, *end_line),
+        Span::MultiLine {
+            start_line,
+            end_line,
+            ..
+        } => (*start_line, *end_line),
     };
     if end > max {
         end = max;
@@ -58,10 +62,19 @@ fn span_to_string(span: &Span) -> String {
         Span::Line(l) => format!("{}", l),
         Span::Point { line, col } => format!("{}.{}", line, col),
         Span::LineRange { start, end } => format!("{}-{}", start, end),
-        Span::ColumnRange { line, start_col, end_col } => {
+        Span::ColumnRange {
+            line,
+            start_col,
+            end_col,
+        } => {
             format!("{}.{}-{}.{}", line, start_col, line, end_col)
         }
-        Span::MultiLine { start_line, start_col, end_line, end_col } => {
+        Span::MultiLine {
+            start_line,
+            start_col,
+            end_line,
+            end_col,
+        } => {
             format!("{}.{}-{}.{}", start_line, start_col, end_line, end_col)
         }
     }
